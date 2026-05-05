@@ -1,4 +1,9 @@
 {
-  "framework": "fastapi"
+  "framework": "fastapi",
+  "functions": {
+    "api/index.py": {
+      "includeFiles": "public/**"
+    }
+  }
 }
 
