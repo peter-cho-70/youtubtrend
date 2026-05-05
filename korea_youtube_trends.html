@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>KR 유튜브 트렌드 대시보드</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --bg:#ffffff;--bg2:#f9fafb;--bg3:#f3f4f6;
+  --text:#111827;--text2:#6b7280;--text3:#9ca3af;
+  --border:#e5e7eb;--border2:#d1d5db;
+  --red:#E24B4A;--red-bg:#FCEBEB;--red-text:#7F1D1D;
+  --radius:8px;--radius-lg:12px;
+}
+@media(prefers-color-scheme:dark){
+  :root{
+    --bg:#1a1a2e;--bg2:#16213e;--bg3:#0f3460;
+    --text:#f1f5f9;--text2:#94a3b8;--text3:#64748b;
+    --border:#334155;--border2:#475569;
+  }
+}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;font-size:14px;
+  background:var(--bg3);color:var(--text);min-height:100vh;}
+.wrap{max-width:900px;margin:0 auto;padding:20px 16px;}
+.dash{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;}
+
+.topbar{display:flex;align-items:center;gap:10px;padding:12px 16px;
+  border-bottom:0.5px solid var(--border);background:var(--bg);}
+.logo-sq{width:28px;height:28px;border-radius:7px;background:var(--red);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.logo-sq svg{width:15px;height:15px;fill:#fff;}
+.logo-txt{font-size:15px;font-weight:500;}
+.logo-sub{font-size:11px;color:var(--text2);}
+.spacer{flex:1;}
+.sync-lbl{font-size:11px;color:var(--text3);}
+.refresh-btn{display:flex;align-items:center;gap:5px;padding:5px 12px;
+  border:0.5px solid var(--border2);border-radius:var(--radius);background:none;
+  cursor:pointer;font-size:12px;color:var(--text2);font-family:inherit;transition:background 0.13s;}
+.refresh-btn:hover{background:var(--bg2);}
+.rspin{display:inline-block;font-size:13px;}
+.rspin.on{animation:spin 0.8s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+
+.nav{display:flex;border-bottom:0.5px solid var(--border);overflow-x:auto;scrollbar-width:none;}
+.nav::-webkit-scrollbar{display:none;}
+.nav-tab{padding:9px 16px;font-size:13px;color:var(--text2);border:none;background:none;
+  cursor:pointer;border-bottom:2px solid transparent;white-space:nowrap;
+  font-family:inherit;transition:color 0.13s;flex-shrink:0;}
+.nav-tab:hover{color:var(--text);}
+.nav-tab.on{color:var(--text);font-weight:500;border-bottom-color:var(--red);}
+
+.body{padding:16px;}
+.filter-row{display:flex;align-items:center;gap:8px;margin-bottom:14px;flex-wrap:wrap;}
+.pill-group{display:flex;gap:4px;flex-wrap:wrap;}
+.pill{padding:4px 11px;border:0.5px solid var(--border2);border-radius:99px;
+  font-size:12px;color:var(--text2);background:none;cursor:pointer;
+  font-family:inherit;transition:all 0.12s;white-space:nowrap;}
+.pill:hover{border-color:var(--text);color:var(--text);}
+.pill.on{background:var(--text);color:var(--bg);border-color:var(--text);}
+.sep{width:0.5px;height:18px;background:var(--border);flex-shrink:0;}
+
+.sec-hd{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.sec-title{font-size:13px;font-weight:500;}
+.sec-note{font-size:11px;color:var(--text3);}
+
+.rank-table{width:100%;border-collapse:collapse;table-layout:fixed;}
+.rank-table th{font-size:11px;font-weight:500;color:var(--text3);
+  text-align:left;padding:0 8px 6px;border-bottom:0.5px solid var(--border);}
+.rank-table th.r{text-align:right;}
+.rank-table td{padding:9px 8px;border-bottom:0.5px solid var(--border);
+  font-size:13px;vertical-align:middle;overflow:hidden;}
+.rank-table tr:last-child td{border-bottom:none;}
+.rank-table tr:hover td{background:var(--bg2);}
+.rn{font-size:12px;font-weight:500;color:var(--text3);display:block;text-align:center;}
+.rn.top{color:var(--red);}
+.thumb{width:42px;height:28px;border-radius:4px;background:var(--bg3);
+  display:flex;align-items:center;justify-content:center;font-size:16px;}
+.ch-thumb{width:30px;height:30px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:500;}
+.vid-title{font-size:12px;font-weight:500;line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.vid-meta{font-size:11px;color:var(--text2);margin-top:2px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.nr{text-align:right;font-size:12px;font-weight:500;white-space:nowrap;}
+.ns{text-align:right;font-size:10px;color:var(--text3);}
+.up{color:#15803d;}
+.bar-wrap{width:72px;height:6px;background:var(--border);border-radius:99px;overflow:hidden;margin-left:auto;}
+.bar-fill{height:100%;border-radius:99px;background:var(--red);}
+.cat-badge{display:inline-block;padding:1px 6px;border-radius:4px;font-size:10px;font-weight:500;white-space:nowrap;}
+
+.stat-row{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:14px;}
+.mini-stat{background:var(--bg2);border-radius:var(--radius);padding:10px 12px;text-align:center;}
+.mini-val{font-size:18px;font-weight:500;}
+.mini-lbl{font-size:11px;color:var(--text2);margin-top:2px;}
+
+.two-col{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:12px 14px;}
+.age-row{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:0.5px solid var(--border);}
+.age-row:last-child{border-bottom:none;}
+.age-lbl{font-size:12px;color:var(--text2);min-width:48px;}
+.age-bar-wrap{flex:1;height:8px;background:var(--border);border-radius:99px;overflow:hidden;}
+.age-bar{height:100%;border-radius:99px;}
+.age-pct{font-size:11px;font-weight:500;min-width:32px;text-align:right;}
+
+.page{display:none;}
+.page.on{display:block;}
+
+.footer-note{text-align:center;font-size:11px;color:var(--text3);padding:16px;
+  border-top:0.5px solid var(--border);}
+
+@media(max-width:600px){
+  .two-col{grid-template-columns:1fr;}
+  .stat-row{grid-template-columns:1fr 1fr;}
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="dash">
+
+<div class="topbar">
+  <div class="logo-sq"><svg viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg></div>
+  <div style="margin-left:8px;">
+    <div class="logo-txt">KR 유튜브 트렌드</div>
+    <div class="logo-sub">한국 인기 영상 · 채널 구독자 분석</div>
+  </div>
+  <div class="spacer"></div>
+  <span class="sync-lbl" id="sync-lbl">2026.05.05  09:00 갱신</span>
+  <button class="refresh-btn" id="refresh-btn"><span class="rspin" id="rspin">↻</span> 갱신</button>
+</div>
+
+<div class="nav" id="nav">
+  <button class="nav-tab on" data-p="video">인기 영상 순위</button>
+  <button class="nav-tab" data-p="channel">구독자 순위</button>
+  <button class="nav-tab" data-p="growth">구독자 증가율</button>
+  <button class="nav-tab" data-p="age">연령대 분석</button>
+</div>
+
+<div class="body">
+
+  <div class="page on" id="page-video">
+    <div class="filter-row">
+      <div class="pill-group" id="period-pills">
+        <button class="pill on" data-v="daily">일간</button>
+        <button class="pill" data-v="weekly">주간</button>
+        <button class="pill" data-v="monthly">월간</button>
+      </div>
+      <div class="sep"></div>
+      <div class="pill-group" id="cat-pills">
+        <button class="pill on" data-c="all">전체</button>
+        <button class="pill" data-c="music">음악</button>
+        <button class="pill" data-c="game">게임</button>
+        <button class="pill" data-c="ent">엔터</button>
+        <button class="pill" data-c="news">뉴스</button>
+        <button class="pill" data-c="edu">교육</button>
+        <button class="pill" data-c="beauty">뷰티</button>
+        <button class="pill" data-c="food">먹방</button>
+        <button class="pill" data-c="travel">여행</button>
+        <button class="pill" data-c="it">IT</button>
+      </div>
+    </div>
+    <div class="sec-hd">
+      <span class="sec-title" id="vid-sec-title">한국 인기 영상 TOP 10 — 일간</span>
+      <span class="sec-note">API: videos.list · 1 유닛/요청</span>
+    </div>
+    <table class="rank-table">
+      <colgroup><col style="width:28px"><col style="width:50px"><col><col style="width:88px"><col style="width:68px"></colgroup>
+      <thead><tr><th>#</th><th></th><th>제목 / 채널</th><th class="r">조회수</th><th class="r">점유율</th></tr></thead>
+      <tbody id="vid-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="page" id="page-channel">
+    <div class="filter-row">
+      <div class="pill-group" id="ch-sort-pills">
+        <button class="pill on" data-s="subs">구독자 수</button>
+        <button class="pill" data-s="views">총 조회수</button>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="mini-stat"><div class="mini-val">50</div><div class="mini-lbl">추적 채널 수</div></div>
+      <div class="mini-stat"><div class="mini-val">1 유닛</div><div class="mini-lbl">배치 호출 비용</div></div>
+      <div class="mini-stat"><div class="mini-val">1회/일</div><div class="mini-lbl">갱신 주기</div></div>
+    </div>
+    <div class="sec-hd">
+      <span class="sec-title">한국 채널 구독자 순위 TOP 10</span>
+      <span class="sec-note">channels.list 배치 50개 = 1유닛</span>
+    </div>
+    <table class="rank-table">
+      <colgroup><col style="width:28px"><col style="width:40px"><col><col style="width:88px"><col style="width:78px"></colgroup>
+      <thead><tr><th>#</th><th></th><th>채널</th><th class="r">구독자</th><th class="r">총 조회수</th></tr></thead>
+      <tbody id="ch-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="page" id="page-growth">
+    <div class="filter-row">
+      <div class="pill-group" id="grow-pills">
+        <button class="pill on" data-g="daily">일간 증가</button>
+        <button class="pill" data-g="weekly">주간 증가</button>
+        <button class="pill" data-g="monthly">월간 증가</button>
+      </div>
+    </div>
+    <div class="stat-row">
+      <div class="mini-stat"><div class="mini-val" id="g-period-lbl">오늘</div><div class="mini-lbl">기준 기간</div></div>
+      <div class="mini-stat"><div class="mini-val" id="g-top-gain">+48.2만</div><div class="mini-lbl">최대 증가</div></div>
+      <div class="mini-stat"><div class="mini-val">DB 저장</div><div class="mini-lbl">증가율 계산법</div></div>
+    </div>
+    <div class="sec-hd">
+      <span class="sec-title" id="grow-sec-title">구독자 증가율 TOP 10 — 일간</span>
+      <span class="sec-note">전일 스냅샷 차이 계산</span>
+    </div>
+    <table class="rank-table">
+      <colgroup><col style="width:28px"><col style="width:40px"><col><col style="width:78px"><col style="width:64px"><col style="width:60px"></colgroup>
+      <thead><tr><th>#</th><th></th><th>채널</th><th class="r">증가 구독자</th><th class="r">증가율</th><th class="r">추세</th></tr></thead>
+      <tbody id="grow-tbody"></tbody>
+    </table>
+  </div>
+
+  <div class="page" id="page-age">
+    <div class="filter-row">
+      <div class="pill-group" id="age-pills">
+        <button class="pill on" data-a="all">전체</button>
+        <button class="pill" data-a="10">10대</button>
+        <button class="pill" data-a="20">20대</button>
+        <button class="pill" data-a="30">30대</button>
+        <button class="pill" data-a="40">40대</button>
+        <button class="pill" data-a="50">50대+</button>
+      </div>
+    </div>
+    <div class="two-col">
+      <div class="card">
+        <div class="sec-hd"><span class="sec-title">연령대별 시청 비중</span><span class="sec-note">KISDI 연구 기반</span></div>
+        <div id="age-dist"></div>
+      </div>
+      <div class="card">
+        <div class="sec-hd"><span class="sec-title" id="age-pref-title">전체 선호 콘텐츠</span><span class="sec-note">카테고리 매핑</span></div>
+        <div id="age-pref"></div>
+      </div>
+    </div>
+    <div style="margin-top:12px;" class="card">
+      <div class="sec-hd"><span class="sec-title" id="age-vid-title">전체 — 추천 인기 영상 TOP 5</span><span class="sec-note">연령대 × 카테고리 매핑</span></div>
+      <table class="rank-table">
+        <colgroup><col style="width:28px"><col style="width:50px"><col><col style="width:78px"></colgroup>
+        <thead><tr><th>#</th><th></th><th>제목 / 채널</th><th class="r">조회수</th></tr></thead>
+        <tbody id="age-vid-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer-note">샘플 데이터 — 실제 서비스 연동 시 YouTube Data API v3 사용 · 쿼타 소비 약 170유닛/일</div>
+</div>
+</div>
+
+<script>
+const BADGE={
+  music:["#FAEEDA","#633806","음악"],game:["#DBEAFE","#1e40af","게임"],
+  ent:["#FCE7F3","#831843","엔터"],news:["#DCFCE7","#14532d","뉴스"],
+  edu:["#EDE9FE","#3730a3","교육"],beauty:["#FEE2E2","#7f1d1d","뷰티"],
+  food:["#D1FAE5","#064e3b","먹방"],travel:["#DBEAFE","#1e3a8a","여행"],
+  it:["#F1F5F9","#334155","IT"],sport:["#F1F5F9","#334155","스포츠"],
+};
+function badge(cat){
+  const b=BADGE[cat]||BADGE.ent;
+  return `<span class="cat-badge" style="background:${b[0]};color:${b[1]};">${b[2]}</span>`;
+}
+
+const VID={
+  daily:[
+    {e:"🎵",t:"아이유 - Love wins all (Lyrics)",ch:"IU Official",cat:"music",v:"1,248만",p:100},
+    {e:"🎮",t:"롤 월드챔피언십 하이라이트 풀버전",ch:"LoL esports KR",cat:"game",v:"892만",p:71},
+    {e:"🎬",t:"무한도전 레전드 모음집 2시간",ch:"MBC Entertainment",cat:"ent",v:"741만",p:59},
+    {e:"📰",t:"오늘의 주요뉴스 브리핑 2026.05.05",ch:"YTN",cat:"news",v:"698만",p:56},
+    {e:"🍜",t:"백종원 간단 라면 레시피 14종",ch:"백종원의 요리비책",cat:"food",v:"612만",p:49},
+    {e:"✈️",t:"제주도 3박4일 혼자 여행 브이로그",ch:"혼자여행하는남자",cat:"travel",v:"578만",p:46},
+    {e:"💻",t:"갤럭시 S26 울트라 리뷰 — 드디어 완벽?",ch:"잇섭",cat:"it",v:"541만",p:43},
+    {e:"💄",t:"2026 봄 메이크업 트렌드 총정리",ch:"회사원A",cat:"beauty",v:"534만",p:43},
+    {e:"🎵",t:"뉴진스 - How Sweet MV",ch:"HYBE LABELS",cat:"music",v:"489만",p:39},
+    {e:"📚",t:"수능 수학 빠르게 푸는 10가지 방법",ch:"수학의 신",cat:"edu",v:"421만",p:34},
+  ],
+  weekly:[
+    {e:"🎵",t:"세븐틴 - Spill The Feels MV",ch:"PLEDIS Entertainment",cat:"music",v:"3,821만",p:100},
+    {e:"🎬",t:"1박2일 시즌5 첫 방송 풀버전",ch:"KBS Entertainment",cat:"ent",v:"2,940만",p:77},
+    {e:"✈️",t:"베트남 다낭 4박5일 가족여행 완전판",ch:"여행유튜버 민지",cat:"travel",v:"2,712만",p:71},
+    {e:"📰",t:"6.3 지방선거 개표방송 하이라이트",ch:"JTBC News",cat:"news",v:"2,612만",p:68},
+    {e:"🍜",t:"먹스나 뉴욕 노점 음식 도전 시리즈",ch:"먹스나",cat:"food",v:"2,201만",p:58},
+    {e:"💻",t:"클로드 4 vs GPT-5 실전 비교 총정리",ch:"노마드 코더",cat:"it",v:"2,089만",p:55},
+    {e:"🎵",t:"아이브 - After LIKE 댄스 커버 모음",ch:"M2",cat:"music",v:"2,101만",p:55},
+    {e:"🍜",t:"전국 맛집 탐방 시즌3 EP.1",ch:"맛있는녀석들",cat:"food",v:"1,893만",p:50},
+    {e:"💄",t:"유튜버 뷰티 콜라보 화제 영상",ch:"과즙세연",cat:"beauty",v:"1,742만",p:46},
+    {e:"✈️",t:"유럽 한 달 살기 현실 브이로그",ch:"여행하는직장인",cat:"travel",v:"1,612만",p:42},
+  ],
+  monthly:[
+    {e:"🎵",t:"BTS 정국 - Standing Next to You MV",ch:"HYBE LABELS",cat:"music",v:"1.2억",p:100},
+    {e:"🎬",t:"무한도전 특집 2026 완전판",ch:"MBC Entertainment",cat:"ent",v:"8,912만",p:74},
+    {e:"✈️",t:"일본 한 달 살기 현실 총정리 시리즈",ch:"여행하는직장인",cat:"travel",v:"8,201만",p:68},
+    {e:"🎮",t:"2026 LCK 스프링 전체 다시보기",ch:"LCK",cat:"game",v:"7,201만",p:60},
+    {e:"💻",t:"AI 툴 100개 써본 솔직 후기",ch:"잇섭",cat:"it",v:"6,891만",p:57},
+    {e:"📰",t:"2026 총선 결과 분석 심층보도",ch:"KBS News",cat:"news",v:"6,498만",p:54},
+    {e:"🍜",t:"백종원 50억뷰 레시피 모음집",ch:"백종원의 요리비책",cat:"food",v:"5,831만",p:49},
+    {e:"🍜",t:"먹스나 세계 길거리 음식 원정대",ch:"먹스나",cat:"food",v:"5,412만",p:45},
+    {e:"💄",t:"K-뷰티 2026 트렌드 완전정복",ch:"회사원A",cat:"beauty",v:"4,912만",p:41},
+    {e:"✈️",t:"국내 여행 숨겨진 명소 30선",ch:"혼자여행하는남자",cat:"travel",v:"4,521만",p:38},
+  ],
+};
+
+const CH=[
+  {n:"BLACKPINK",i:"BP",c:"#D4537E",bg:"#FCE7F3",s:"9,120만",v:"380억"},
+  {n:"BTS HYBE",i:"BT",c:"#7F77DD",bg:"#EDE9FE",s:"7,841만",v:"312억"},
+  {n:"SMTOWN",i:"SM",c:"#2563eb",bg:"#DBEAFE",s:"3,412만",v:"198억"},
+  {n:"JTBC Entertainment",i:"JT",c:"#b45309",bg:"#FEF3C7",s:"2,901만",v:"142억"},
+  {n:"MBC Entertainment",i:"MB",c:"#15803d",bg:"#DCFCE7",s:"2,734만",v:"128억"},
+  {n:"백종원의 요리비책",i:"백",c:"#92400e",bg:"#FEF3C7",s:"2,212만",v:"91억"},
+  {n:"워크맨",i:"워",c:"#0f766e",bg:"#CCFBF1",s:"1,992만",v:"78억"},
+  {n:"잇섭 (IT 리뷰)",i:"잇",c:"#374151",bg:"#F3F4F6",s:"1,901만",v:"76억"},
+  {n:"혼자여행하는남자",i:"여",c:"#1d4ed8",bg:"#DBEAFE",s:"1,841만",v:"72억"},
+  {n:"먹스나",i:"먹",c:"#065f46",bg:"#D1FAE5",s:"1,801만",v:"69억"},
+];
+
+const GROW={
+  daily:[
+    {n:"세븐틴 Official",i:"17",c:"#1d4ed8",bg:"#DBEAFE",g:"+48.2만",r:"+1.24%",t:[3,4,5,6,5,7,8]},
+    {n:"NewJeans",i:"NJ",c:"#be185d",bg:"#FCE7F3",g:"+41.7만",r:"+0.98%",t:[5,4,6,5,7,6,7]},
+    {n:"잇섭 (IT)",i:"잇",c:"#374151",bg:"#F3F4F6",g:"+39.1만",r:"+0.91%",t:[3,4,5,5,6,7,7]},
+    {n:"혼자여행하는남자",i:"여",c:"#1d4ed8",bg:"#DBEAFE",g:"+35.8만",r:"+0.88%",t:[2,3,4,5,5,6,6]},
+    {n:"아이유 IU",i:"IU",c:"#6d28d9",bg:"#EDE9FE",g:"+38.9만",r:"+0.87%",t:[4,5,4,6,5,8,7]},
+    {n:"먹스나",i:"먹",c:"#065f46",bg:"#D1FAE5",g:"+28.4만",r:"+0.64%",t:[3,3,4,4,4,5,6]},
+    {n:"고누리",i:"고",c:"#92400e",bg:"#FEF3C7",g:"+31.2만",r:"+0.72%",t:[2,3,4,3,5,5,6]},
+    {n:"워크맨",i:"워",c:"#0f766e",bg:"#CCFBF1",g:"+19.8만",r:"+0.41%",t:[2,2,3,3,4,4,4]},
+    {n:"백종원의 요리비책",i:"백",c:"#92400e",bg:"#FEF3C7",g:"+17.3만",r:"+0.38%",t:[1,2,2,3,3,3,4]},
+    {n:"노마드 코더",i:"노",c:"#4f46e5",bg:"#EDE9FE",g:"+14.9만",r:"+0.35%",t:[2,2,2,3,2,3,3]},
+  ],
+  weekly:[
+    {n:"세븐틴 Official",i:"17",c:"#1d4ed8",bg:"#DBEAFE",g:"+312만",r:"+8.4%",t:[3,4,5,6,5,7,8]},
+    {n:"혼자여행하는남자",i:"여",c:"#1d4ed8",bg:"#DBEAFE",g:"+298만",r:"+7.8%",t:[2,3,4,5,5,6,6]},
+    {n:"잇섭 (IT)",i:"잇",c:"#374151",bg:"#F3F4F6",g:"+271만",r:"+7.1%",t:[3,4,5,5,6,7,7]},
+    {n:"NewJeans",i:"NJ",c:"#be185d",bg:"#FCE7F3",g:"+287만",r:"+6.9%",t:[5,4,6,5,7,6,7]},
+    {n:"고누리",i:"고",c:"#92400e",bg:"#FEF3C7",g:"+241만",r:"+5.8%",t:[2,3,4,3,5,5,6]},
+    {n:"먹스나",i:"먹",c:"#065f46",bg:"#D1FAE5",g:"+198만",r:"+4.9%",t:[3,3,4,4,4,5,6]},
+    {n:"아이유 IU",i:"IU",c:"#6d28d9",bg:"#EDE9FE",g:"+198만",r:"+4.5%",t:[4,5,4,6,5,8,7]},
+    {n:"워크맨",i:"워",c:"#0f766e",bg:"#CCFBF1",g:"+128만",r:"+2.7%",t:[2,2,3,3,4,4,4]},
+    {n:"노마드 코더",i:"노",c:"#4f46e5",bg:"#EDE9FE",g:"+98만",r:"+2.3%",t:[2,2,2,3,2,3,3]},
+    {n:"백종원의 요리비책",i:"백",c:"#92400e",bg:"#FEF3C7",g:"+87만",r:"+1.9%",t:[1,2,2,3,3,3,4]},
+  ],
+  monthly:[
+    {n:"세븐틴 Official",i:"17",c:"#1d4ed8",bg:"#DBEAFE",g:"+1,201만",r:"+32.1%",t:[3,4,5,6,5,7,8]},
+    {n:"혼자여행하는남자",i:"여",c:"#1d4ed8",bg:"#DBEAFE",g:"+1,089만",r:"+29.4%",t:[2,3,4,5,5,6,6]},
+    {n:"잇섭 (IT)",i:"잇",c:"#374151",bg:"#F3F4F6",g:"+981만",r:"+26.3%",t:[3,4,5,5,6,7,7]},
+    {n:"고누리",i:"고",c:"#92400e",bg:"#FEF3C7",g:"+941만",r:"+28.7%",t:[2,3,4,3,5,5,6]},
+    {n:"NewJeans",i:"NJ",c:"#be185d",bg:"#FCE7F3",g:"+872만",r:"+21.4%",t:[5,4,6,5,7,6,7]},
+    {n:"먹스나",i:"먹",c:"#065f46",bg:"#D1FAE5",g:"+698만",r:"+16.2%",t:[3,3,4,4,4,5,6]},
+    {n:"아이유 IU",i:"IU",c:"#6d28d9",bg:"#EDE9FE",g:"+598만",r:"+13.5%",t:[4,5,4,6,5,8,7]},
+    {n:"워크맨",i:"워",c:"#0f766e",bg:"#CCFBF1",g:"+471만",r:"+9.8%",t:[2,2,3,3,4,4,4]},
+    {n:"회사원A",i:"A",c:"#b91c1c",bg:"#FEE2E2",g:"+389만",r:"+9.2%",t:[1,1,2,2,2,3,3]},
+    {n:"노마드 코더",i:"노",c:"#4f46e5",bg:"#EDE9FE",g:"+312만",r:"+7.4%",t:[2,2,2,3,2,3,3]},
+  ],
+};
+
+const AGE_DIST=[
+  {l:"10대",p:20.6,c:"#7c3aed"},{l:"20대",p:23.3,c:"#2563eb"},
+  {l:"30대",p:17.2,c:"#059669"},{l:"40대",p:13.6,c:"#d97706"},
+  {l:"50대+",p:25.4,c:"#dc2626"},
+];
+const AGE_PREF={
+  all:["예능/오락","음악 MV","먹방/쿡방","여행 브이로그","IT 리뷰","뉴스/시사","게임"],
+  "10":["게임","뮤직비디오","먹방","뷰티","브이로그","IT 언박싱","애니메이션"],
+  "20":["예능/오락","게임","먹방/맛집","여행 브이로그","IT 리뷰","뮤직비디오","자기계발"],
+  "30":["예능/오락","먹방/요리","여행","IT 리뷰/꿀팁","재테크","뉴스/시사","뮤직비디오"],
+  "40":["예능/오락","뉴스/시사","여행","먹방/요리","재테크","IT 활용법","스포츠"],
+  "50":["뉴스/시사","건강/운동","여행","교양/다큐","먹방/요리","IT 쉬운 강의","일상정보"],
+};
+const AGE_VIDS={
+  all:[
+    {e:"🎵",t:"아이유 - Love wins all",ch:"IU Official",v:"1,248만"},
+    {e:"🍜",t:"백종원 간단 라면 레시피 14종",ch:"백종원의 요리비책",v:"612만"},
+    {e:"✈️",t:"제주도 3박4일 혼자 여행 브이로그",ch:"혼자여행하는남자",v:"578만"},
+    {e:"💻",t:"갤럭시 S26 울트라 리뷰",ch:"잇섭",v:"541만"},
+    {e:"📰",t:"오늘의 주요뉴스 브리핑",ch:"YTN",v:"698만"},
+  ],
+  "10":[
+    {e:"🎮",t:"롤 월드챔피언십 하이라이트",ch:"LoL esports KR",v:"892만"},
+    {e:"🎵",t:"뉴진스 - How Sweet MV",ch:"HYBE LABELS",v:"489만"},
+    {e:"🍜",t:"편의점 신메뉴 먹방 풀버전",ch:"먹스나",v:"412만"},
+    {e:"💻",t:"갤럭시 S26 개봉기 & 첫인상",ch:"잇섭",v:"389만"},
+    {e:"💄",t:"10대 추천 틴트 TOP 5",ch:"회사원A",v:"312만"},
+  ],
+  "20":[
+    {e:"🎵",t:"세븐틴 - Spill The Feels MV",ch:"PLEDIS Entertainment",v:"1,100만"},
+    {e:"🍜",t:"먹스나 뉴욕 노점 음식 도전",ch:"먹스나",v:"812만"},
+    {e:"✈️",t:"유럽 혼자 여행 현실 브이로그",ch:"여행하는직장인",v:"712만"},
+    {e:"💻",t:"클로드 4 vs GPT-5 실전 비교",ch:"노마드 코더",v:"621만"},
+    {e:"💄",t:"2026 봄 메이크업 트렌드",ch:"회사원A",v:"534만"},
+  ],
+  "30":[
+    {e:"🎬",t:"무한도전 레전드 모음집",ch:"MBC Entertainment",v:"741만"},
+    {e:"🍜",t:"백종원 간단 라면 레시피",ch:"백종원의 요리비책",v:"612만"},
+    {e:"✈️",t:"제주도 가족여행 3박4일 코스",ch:"혼자여행하는남자",v:"589만"},
+    {e:"💻",t:"AI 업무 자동화 실전 강의",ch:"노마드 코더",v:"512만"},
+    {e:"💰",t:"30대 재테크 완전정복",ch:"슈카월드",v:"412만"},
+  ],
+  "40":[
+    {e:"📰",t:"오늘의 주요뉴스 브리핑",ch:"YTN",v:"698만"},
+    {e:"✈️",t:"국내 숨겨진 여행지 30선",ch:"혼자여행하는남자",v:"621만"},
+    {e:"🍜",t:"백종원 간단 라면 레시피",ch:"백종원의 요리비책",v:"612만"},
+    {e:"💻",t:"스마트폰 활용 꿀팁 50가지",ch:"잇섭",v:"498만"},
+    {e:"⚽",t:"손흥민 토트넘 복귀 골 모음",ch:"EPL Korea",v:"412만"},
+  ],
+  "50":[
+    {e:"📰",t:"오늘의 주요뉴스 브리핑",ch:"YTN",v:"698만"},
+    {e:"🏥",t:"혈당 낮추는 음식 TOP 10",ch:"건강정보TV",v:"589만"},
+    {e:"✈️",t:"국내 힐링 여행지 베스트 20",ch:"혼자여행하는남자",v:"512만"},
+    {e:"💻",t:"스마트폰 쉽게 배우기 시리즈",ch:"잇섭",v:"401만"},
+    {e:"🍳",t:"어르신 건강식 레시피 모음",ch:"백종원의 요리비책",v:"387만"},
+  ],
+};
+
+let curP="daily",curC="all",curG="daily",curA="all";
+
+function spark(t){
+  const mx=Math.max(...t),w=56,h=18,pd=2;
+  const pts=t.map((v,i)=>`${(pd+i*(w-pd*2)/(t.length-1)).toFixed(1)},${(h-pd-(v/mx)*(h-pd*2)).toFixed(1)}`).join(" ");
+  return `<svg width="${w}" height="${h}" viewBox="0 0 ${w} ${h}"><polyline points="${pts}" fill="none" stroke="#E24B4A" stroke-width="1.5" stroke-linejoin="round"/></svg>`;
+}
+
+function renderVids(){
+  const all=VID[curP];
+  const list=curC==="all"?all:all.filter(v=>v.cat===curC);
+  const show=list.length?list:all;
+  const mx=show[0].p;
+  const lbl={daily:"일간",weekly:"주간",monthly:"월간"};
+  document.getElementById("vid-sec-title").textContent=`한국 인기 영상 TOP 10 — ${lbl[curP]}`;
+  document.getElementById("vid-tbody").innerHTML=show.slice(0,10).map((v,i)=>`<tr>
+    <td><span class="rn ${i<3?"top":""}">${i+1}</span></td>
+    <td><div class="thumb">${v.e}</div></td>
+    <td><div class="vid-title">${v.t}</div><div class="vid-meta">${v.ch} &nbsp;${badge(v.cat)}</div></td>
+    <td><div class="nr">${v.v}</div><div class="ns">조회수</div></td>
+    <td><div class="bar-wrap"><div class="bar-fill" style="width:${Math.round(v.p/mx*100)}%"></div></div></td>
+  </tr>`).join("");
+}
+
+function renderCh(){
+  document.getElementById("ch-tbody").innerHTML=CH.map((c,i)=>`<tr>
+    <td><span class="rn ${i<3?"top":""}">${i+1}</span></td>
+    <td><div class="ch-thumb" style="background:${c.bg};color:${c.c};">${c.i}</div></td>
+    <td><div class="vid-title">${c.n}</div></td>
+    <td><div class="nr">${c.s}</div><div class="ns">구독자</div></td>
+    <td><div class="nr">${c.v}</div><div class="ns">총 조회수</div></td>
+  </tr>`).join("");
+}
+
+function renderGrow(){
+  const d=GROW[curG];
+  const lbl={daily:"오늘",weekly:"이번 주",monthly:"이번 달"};
+  const tit={daily:"일간",weekly:"주간",monthly:"월간"};
+  document.getElementById("g-period-lbl").textContent=lbl[curG];
+  document.getElementById("g-top-gain").textContent=d[0].g;
+  document.getElementById("grow-sec-title").textContent=`구독자 증가율 TOP 10 — ${tit[curG]}`;
+  document.getElementById("grow-tbody").innerHTML=d.map((c,i)=>`<tr>
+    <td><span class="rn ${i<3?"top":""}">${i+1}</span></td>
+    <td><div class="ch-thumb" style="background:${c.bg};color:${c.c};">${c.i}</div></td>
+    <td><div class="vid-title">${c.n}</div></td>
+    <td><div class="nr up">${c.g}</div></td>
+    <td><div class="nr up">${c.r}</div></td>
+    <td style="text-align:right">${spark(c.t)}</td>
+  </tr>`).join("");
+}
+
+function renderAge(){
+  document.getElementById("age-dist").innerHTML=AGE_DIST.map(a=>`
+    <div class="age-row">
+      <span class="age-lbl">${a.l}</span>
+      <div class="age-bar-wrap"><div class="age-bar" style="width:${a.p*4}%;background:${a.c};"></div></div>
+      <span class="age-pct">${a.p}%</span>
+    </div>`).join("");
+  const prefs=AGE_PREF[curA]||AGE_PREF.all;
+  const clrs=["#dc2626","#2563eb","#059669","#d97706","#7c3aed","#be185d","#0f766e"];
+  document.getElementById("age-pref").innerHTML=prefs.map((p,i)=>`
+    <div class="age-row">
+      <span class="age-lbl">${i+1}위</span>
+      <div class="age-bar-wrap"><div class="age-bar" style="width:${100-i*11}%;background:${clrs[i]};"></div></div>
+      <span class="age-pct" style="min-width:100px;text-align:left;font-size:12px;">${p}</span>
+    </div>`).join("");
+  const lbl={all:"전체","10":"10대","20":"20대","30":"30대","40":"40대","50":"50대+"};
+  document.getElementById("age-pref-title").textContent=`${lbl[curA]} 선호 콘텐츠`;
+  document.getElementById("age-vid-title").textContent=`${lbl[curA]} — 추천 인기 영상 TOP 5`;
+  const vids=AGE_VIDS[curA]||AGE_VIDS.all;
+  document.getElementById("age-vid-tbody").innerHTML=vids.map((v,i)=>`<tr>
+    <td><span class="rn ${i<3?"top":""}">${i+1}</span></td>
+    <td><div class="thumb">${v.e}</div></td>
+    <td><div class="vid-title">${v.t}</div><div class="vid-meta">${v.ch}</div></td>
+    <td><div class="nr">${v.v}</div></td>
+  </tr>`).join("");
+}
+
+document.getElementById("nav").addEventListener("click",e=>{
+  const t=e.target.closest(".nav-tab"); if(!t) return;
+  document.querySelectorAll(".nav-tab").forEach(x=>x.classList.remove("on"));
+  document.querySelectorAll(".page").forEach(x=>x.classList.remove("on"));
+  t.classList.add("on"); document.getElementById("page-"+t.dataset.p).classList.add("on");
+});
+document.getElementById("period-pills").addEventListener("click",e=>{
+  const p=e.target.closest(".pill"); if(!p) return;
+  document.querySelectorAll("#period-pills .pill").forEach(x=>x.classList.remove("on"));
+  p.classList.add("on"); curP=p.dataset.v; renderVids();
+});
+document.getElementById("cat-pills").addEventListener("click",e=>{
+  const p=e.target.closest(".pill"); if(!p) return;
+  document.querySelectorAll("#cat-pills .pill").forEach(x=>x.classList.remove("on"));
+  p.classList.add("on"); curC=p.dataset.c; renderVids();
+});
+document.getElementById("ch-sort-pills").addEventListener("click",e=>{
+  const p=e.target.closest(".pill"); if(!p) return;
+  document.querySelectorAll("#ch-sort-pills .pill").forEach(x=>x.classList.remove("on"));
+  p.classList.add("on"); renderCh();
+});
+document.getElementById("grow-pills").addEventListener("click",e=>{
+  const p=e.target.closest(".pill"); if(!p) return;
+  document.querySelectorAll("#grow-pills .pill").forEach(x=>x.classList.remove("on"));
+  p.classList.add("on"); curG=p.dataset.g; renderGrow();
+});
+document.getElementById("age-pills").addEventListener("click",e=>{
+  const p=e.target.closest(".pill"); if(!p) return;
+  document.querySelectorAll("#age-pills .pill").forEach(x=>x.classList.remove("on"));
+  p.classList.add("on"); curA=p.dataset.a; renderAge();
+});
+document.getElementById("refresh-btn").addEventListener("click",function(){
+  const sp=document.getElementById("rspin"); sp.classList.add("on");
+  setTimeout(()=>{
+    sp.classList.remove("on");
+    const n=new Date();
+    document.getElementById("sync-lbl").textContent=
+      `2026.05.05  ${String(n.getHours()).padStart(2,"0")}:${String(n.getMinutes()).padStart(2,"0")} 갱신`;
+  },1200);
+});
+
+renderVids(); renderCh(); renderGrow(); renderAge();
+</script>
+</body>
+</html>

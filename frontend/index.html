@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KR 유튜브 트렌드 대시보드 (Local)</title>
+  <link rel="stylesheet" href="./style.css">
+</head>
+<body>
+  <div class="wrap">
+    <div class="dash">
+
+      <div class="topbar">
+        <div class="logo-sq">
+          <svg viewBox="0 0 24 24"><path d="M10 15l5.19-3L10 9v6zM12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z"/></svg>
+        </div>
+        <div style="margin-left:8px;">
+          <div class="logo-txt">KR 유튜브 트렌드</div>
+          <div class="logo-sub">로컬 모드 · YouTube Data API v3</div>
+        </div>
+        <div class="spacer"></div>
+        <span class="sync-lbl" id="sync-lbl">미갱신</span>
+        <button class="refresh-btn" id="refresh-btn"><span class="rspin" id="rspin">↻</span> 스냅샷 갱신</button>
+      </div>
+
+      <div class="nav" id="nav">
+        <button class="nav-tab on" data-p="video">인기 영상 순위</button>
+        <button class="nav-tab" data-p="channel">구독자 순위</button>
+        <button class="nav-tab" data-p="growth">구독자 증가율</button>
+        <button class="nav-tab" data-p="age">연령대 분석</button>
+      </div>
+
+      <div class="body">
+        <div class="page on" id="page-video">
+          <div class="filter-row">
+            <div class="pill-group" id="period-pills">
+              <button class="pill on" data-v="daily">일간</button>
+              <button class="pill" data-v="weekly">주간</button>
+              <button class="pill" data-v="monthly">월간</button>
+            </div>
+            <div class="sep"></div>
+            <div class="pill-group" id="cat-pills">
+              <button class="pill on" data-c="all">전체</button>
+              <button class="pill" data-c="music">음악</button>
+              <button class="pill" data-c="game">게임</button>
+              <button class="pill" data-c="ent">엔터</button>
+              <button class="pill" data-c="news">뉴스</button>
+              <button class="pill" data-c="edu">교육</button>
+              <button class="pill" data-c="beauty">뷰티</button>
+              <button class="pill" data-c="food">먹방</button>
+              <button class="pill" data-c="travel">여행</button>
+              <button class="pill" data-c="it">IT</button>
+            </div>
+            <div class="sep" id="all-size-sep"></div>
+            <div class="pill-group" id="all-size-pills" style="display:none;">
+              <button class="pill on" data-n="10">TOP 10</button>
+              <button class="pill" data-n="100">TOP 100</button>
+            </div>
+          </div>
+
+          <div class="sec-hd">
+            <span class="sec-title" id="vid-sec-title">한국 인기 영상 TOP 10</span>
+            <span class="sec-note" id="vid-sec-note">스냅샷 기반 집계 (daily/weekly/monthly)</span>
+          </div>
+
+          <div class="two-col">
+            <div class="card">
+              <div class="sec-hd">
+                <span class="sec-title">#1 인라인 재생</span>
+                <span class="sec-note">썸네일 클릭 → embed</span>
+              </div>
+              <div id="player"></div>
+              <div class="empty-note" id="player-empty" style="display:none;">데이터가 없습니다. 상단의 “스냅샷 갱신”을 눌러 저장한 뒤 다시 시도하세요.</div>
+            </div>
+
+            <div class="card">
+              <div class="sec-hd">
+                <span class="sec-title" id="vid-list-title">#2~10</span>
+                <span class="sec-note">클릭 → 새 탭 YouTube</span>
+              </div>
+              <table class="rank-table">
+                <colgroup><col style="width:28px"><col style="width:56px"><col><col style="width:96px"></colgroup>
+                <thead><tr><th>#</th><th></th><th>제목 / 채널</th><th class="r">조회수</th></tr></thead>
+                <tbody id="vid-tbody"></tbody>
+              </table>
+              <div class="pager" id="vid-pager" style="display:none;"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="page" id="page-channel">
+          <div class="filter-row">
+            <div class="pill-group" id="ch-sort-pills">
+              <button class="pill on" data-s="subs">구독자 수</button>
+              <button class="pill" data-s="views">총 조회수</button>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="mini-stat"><div class="mini-val" id="ch-count">-</div><div class="mini-lbl">스냅샷 채널 수</div></div>
+            <div class="mini-stat"><div class="mini-val">1 유닛</div><div class="mini-lbl">배치 호출 비용(50개)</div></div>
+            <div class="mini-stat"><div class="mini-val">1회/일</div><div class="mini-lbl">갱신 권장</div></div>
+          </div>
+          <div class="sec-hd">
+            <span class="sec-title">구독자/조회수 TOP 10</span>
+            <span class="sec-note">channels.list 배치 스냅샷</span>
+          </div>
+          <table class="rank-table">
+            <colgroup><col style="width:28px"><col style="width:40px"><col><col style="width:96px"><col style="width:96px"></colgroup>
+            <thead><tr><th>#</th><th></th><th>채널</th><th class="r">구독자</th><th class="r">총 조회수</th></tr></thead>
+            <tbody id="ch-tbody"></tbody>
+          </table>
+          <div class="empty-note" id="ch-empty" style="display:none;">채널 스냅샷이 없습니다. `backend/config/channels.json`에 채널 ID를 넣고 스냅샷을 갱신하세요.</div>
+        </div>
+
+        <div class="page" id="page-growth">
+          <div class="filter-row">
+            <div class="pill-group" id="grow-pills">
+              <button class="pill on" data-g="daily">일간 증가</button>
+              <button class="pill" data-g="weekly">주간 증가</button>
+              <button class="pill" data-g="monthly">월간 증가</button>
+            </div>
+          </div>
+          <div class="stat-row">
+            <div class="mini-stat"><div class="mini-val" id="g-period-lbl">-</div><div class="mini-lbl">기준 기간</div></div>
+            <div class="mini-stat"><div class="mini-val" id="g-top-gain">-</div><div class="mini-lbl">최대 증가</div></div>
+            <div class="mini-stat"><div class="mini-val">DB 조인</div><div class="mini-lbl">증가율 계산</div></div>
+          </div>
+          <div class="sec-hd">
+            <span class="sec-title" id="grow-sec-title">구독자 증가율 TOP 10</span>
+            <span class="sec-note">오늘 vs N일 전 스냅샷</span>
+          </div>
+          <table class="rank-table">
+            <colgroup><col style="width:28px"><col style="width:40px"><col><col style="width:96px"><col style="width:80px"><col style="width:80px"></colgroup>
+            <thead><tr><th>#</th><th></th><th>채널</th><th class="r">증가</th><th class="r">증가율</th><th class="r">추세</th></tr></thead>
+            <tbody id="grow-tbody"></tbody>
+          </table>
+          <div class="empty-note" id="grow-empty" style="display:none;">증가율 계산을 위해서는 최소 2개 날짜(예: 오늘/어제) 스냅샷이 필요합니다.</div>
+        </div>
+
+        <div class="page" id="page-age">
+          <div class="filter-row">
+            <div class="pill-group" id="age-pills">
+              <button class="pill on" data-a="all">전체</button>
+              <button class="pill" data-a="10">10대</button>
+              <button class="pill" data-a="20">20대</button>
+              <button class="pill" data-a="30">30대</button>
+              <button class="pill" data-a="40">40대</button>
+              <button class="pill" data-a="50">50대+</button>
+            </div>
+          </div>
+          <div class="two-col">
+            <div class="card">
+              <div class="sec-hd"><span class="sec-title">연령대별 시청 비중</span><span class="sec-note">KISDI 기반(추정)</span></div>
+              <div id="age-dist"></div>
+            </div>
+            <div class="card">
+              <div class="sec-hd"><span class="sec-title" id="age-pref-title">전체 선호 콘텐츠</span><span class="sec-note">추정 매핑</span></div>
+              <div id="age-pref"></div>
+            </div>
+          </div>
+          <div style="margin-top:12px;" class="card">
+            <div class="sec-hd"><span class="sec-title" id="age-vid-title">전체 — 추천 인기 영상 TOP 5</span><span class="sec-note">스냅샷 재사용</span></div>
+            <table class="rank-table">
+              <colgroup><col style="width:28px"><col style="width:56px"><col><col style="width:96px"></colgroup>
+              <thead><tr><th>#</th><th></th><th>제목 / 채널</th><th class="r">조회수</th></tr></thead>
+              <tbody id="age-vid-tbody"></tbody>
+            </table>
+            <div class="empty-note" id="age-vid-empty" style="display:none;">추천 영상을 만들 스냅샷이 없습니다. 먼저 스냅샷을 갱신하세요.</div>
+            <div class="empty-note" style="margin-top:6px;">연령대 데이터는 YouTube API로 직접 확인할 수 없어, 연구 기반 추정치입니다.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="footer-note">로컬 실행용 · 상단 “스냅샷 갱신”은 `/api/snapshot/run`을 호출합니다.</div>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
